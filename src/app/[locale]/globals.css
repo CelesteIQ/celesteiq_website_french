@@ -125,6 +125,10 @@
 
 /* ------------- */
 
+*{
+  scroll-behavior: smooth;
+}
+
 .text-image1 {
   background-image: url('/textBg2.png');
   background-size: cover;

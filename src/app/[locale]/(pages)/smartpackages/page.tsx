@@ -100,7 +100,7 @@ export default function SmartPackages() {
                             size={"lg"}
                             className="py-6 bg-[#FF7A00] md:w-auto w-full px-5 text-white hover:bg-[#ea580c]"
                         >
-                            <Link href="/contact">{s("cta.primary")}</Link>
+                            <Link href="#pack">{s("cta.primary")}</Link>
                         </Button>
                         <Button
                             variant="outline"
@@ -401,7 +401,7 @@ export default function SmartPackages() {
             </section>
 
 
-            <section
+            <section id='pack'
                 className="bg-gradient-to-b from-slate-50 to-white py-12 md:py-16"
                 data-aos="fade-up"
             >

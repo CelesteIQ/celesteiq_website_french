@@ -174,7 +174,7 @@ export default function HomePage() {
 
 
                 <div className="">
-                <div className="w-full lg:h-[30vw]"></div>
+                    <div className="w-full lg:h-[30vw]"></div>
                     <div className="w-full max-w-[87rem] lg:text-start text-center p-5">
                         <div className="flex lg:-mb-5 items-end lg:flex-row mb-3 flex-col justify-center lg:gap-10 gap-4">
                             <h1
@@ -1362,7 +1362,7 @@ export default function HomePage() {
                                     </>
                                 ) : (
                                     <iframe
-                                        src="https://streamable.com/e/947f9d?autoplay=1"
+                                        src="https://www.youtube.com/embed/YcpdnVmaYLw?si=7XU-Sx-E1BunpMnv&autoplay=1"
                                         allowFullScreen
                                         className="absolute left-0 top-0 h-full w-full rounded-2xl"
                                         title={h("videoSection.iframeTitle")}
