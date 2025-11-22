@@ -47,6 +47,15 @@ export default function ChatWidget() {
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
 
+  // 🔥 NEW: ref used as the scroll target at the bottom
+  const bottomRef = React.useRef<HTMLDivElement | null>(null);
+
+  // 🔥 NEW: whenever messages change (and chat is open), scroll to bottom
+  React.useEffect(() => {
+    if (!open) return;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, open]);
+
   async function handleAsk() {
     if (!input.trim() || loading) return;
 
@@ -73,7 +82,8 @@ export default function ChatWidget() {
       const data = await res.json();
 
       const botText =
-        data?.text || "Je ne peux pas répondre pour le moment. Veuillez réessayer.";
+        data?.text ||
+        "Je ne peux pas répondre pour le moment. Veuillez réessayer.";
 
       const botMessage: Message = {
         id: `b-${Date.now()}`,
@@ -114,7 +124,9 @@ export default function ChatWidget() {
                       Assistant CelesteIQ
                     </CardTitle>
                     <p className="text-xs text-slate-600">
-                      {loading ? "Saisie en cours…" : "En ligne • Posez votre question"}
+                      {loading
+                        ? "Saisie en cours…"
+                        : "En ligne • Posez votre question"}
                     </p>
                   </div>
                 </div>
@@ -162,6 +174,9 @@ export default function ChatWidget() {
                       Bonjour, comment puis-je vous aider ?
                     </p>
                   )}
+
+                  {/* 🔥 Scroll target at the end of the list */}
+                  <div ref={bottomRef} />
                 </div>
               </ScrollArea>
 
