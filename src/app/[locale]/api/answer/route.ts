@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import Data from "@/data/packages.json"; // full training data
 
-
 function buildContextForQuestion(question: string) {
     const q = question.toLowerCase();
 
@@ -24,10 +23,12 @@ function buildContextForQuestion(question: string) {
     let filteredPackages: any[];
 
     if (relevantIds.size > 0) {
+        // 👉 Envoyer les objets complets pour les packs pertinents
         filteredPackages = (packages || []).filter((p: any) =>
             relevantIds.has(p.id)
         );
     } else {
+        // 👉 Pas de déclencheur fort ? Envoyer tous les packs
         filteredPackages = packages || [];
     }
 
@@ -50,8 +51,6 @@ function buildContextForQuestion(question: string) {
     };
 }
 
-
-
 export async function POST(req: Request) {
     try {
         const { question } = await req.json();
@@ -66,20 +65,34 @@ export async function POST(req: Request) {
         const systemInstruction = `
 You are the CelesteIQ Assistant, acting as a presales consultant.
 
+LANGUAGE
+- Your default language is French. Reply in French unless the user clearly writes in English.
+- If the user writes in English, reply in English. If the user writes in French, reply in French.
+
+ROLE
 - Your job is to understand the user's situation and recommend the most suitable CelesteIQ package(s).
 - Always try to:
   1) Rephrase the user's need in 1 short sentence,
   2) Recommend one or two relevant packages from the Context,
-  3) Explain briefly how those packages address the problem,
+  3) Explain briefly how those packages address the problem (in practical terms),
   4) Offer a clear next step (e.g., contact email or book a consultation).
+
+SCOPE
 - Only answer questions about CelesteIQ: its Microsoft + AI services, packages, audits, security, training, and contact options.
-- Use the JSON "Context" as your source of truth. Prefer mapping the user's need to the closest package rather than saying you don't know.
-- If the user asks clearly about pricing, specific contract terms, or something not covered in the Context, you can say:
-  "For precise pricing or contractual details, the best next step is to contact our team at ${CONTACT_EMAIL} so we can review your situation."
-- Be brief, friendly, and professional. Use bullet points when helpful.
+- Use the JSON "Context" as your source of truth.
+- Prefer mapping the user's need to the closest package rather than saying you don't know.
+
+PRICING / CONTRACTS / OUT-OF-SCOPE
+- If the user asks clearly about pricing, discounts or contractual terms not specified in the Context, you can say for example (in the appropriate language):
+  "Pour des détails précis sur la tarification ou les contrats, le mieux est de contacter notre équipe à ${CONTACT_EMAIL} afin que nous puissions étudier votre situation."
+- If the question is completely outside CelesteIQ's services, say briefly that it is out of scope and, if helpful, suggest contacting the team.
+
+STYLE
+- Be brief, friendly, and professional.
+- Use bullet points when helpful.
+- Sound like a human Microsoft + AI consultant, not like a generic chatbot.
 - Never talk about how you were built or about AI models.
 `;
-
 
         const contextObj = buildContextForQuestion(question);
 
@@ -87,7 +100,7 @@ You are the CelesteIQ Assistant, acting as a presales consultant.
 Question:
 ${question}
 
-Context (only relevant slice of data):
+Context (relevant data about CelesteIQ):
 ${JSON.stringify(contextObj)}
 `;
 
