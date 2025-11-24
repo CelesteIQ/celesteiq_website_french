@@ -1,15 +1,13 @@
-// app/api/answer/route.ts
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import Data from "@/data/packages.json"; // full training data
 
-// Helper: build a smaller context for this specific question
+
 function buildContextForQuestion(question: string) {
     const q = question.toLowerCase();
 
     const { brand, contact, packages, faq, routing } = Data as any;
 
-    // 1) Decide which packages are most relevant based on triggers
     const relevantIds = new Set<string>();
 
     if (routing?.packageSuggestionRules) {
@@ -26,27 +24,18 @@ function buildContextForQuestion(question: string) {
     let filteredPackages: any[];
 
     if (relevantIds.size > 0) {
-        // Only the packages that match the triggers
         filteredPackages = (packages || []).filter((p: any) =>
             relevantIds.has(p.id)
         );
     } else {
-        // Fallback: send only "light" info for all packages
-        filteredPackages = (packages || []).map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            headline: p.headline,
-            summary: p.summary,
-        }));
+        filteredPackages = packages || [];
     }
 
-    // 2) Filter FAQ: simple keyword match, then cap to a few entries
     const filteredFaq =
         (faq || [])
             .filter((item: any) => {
                 const fq = (item.q || "").toLowerCase();
                 if (!fq) return false;
-                // match on any word from the question
                 return q
                     .split(/\W+/)
                     .some((word) => word && fq.includes(word.toLowerCase()));
@@ -56,12 +45,12 @@ function buildContextForQuestion(question: string) {
     return {
         brand,
         contact,
-        // only filtered packages
         packages: filteredPackages,
-        // relevant FAQ or a small default subset
         faq: filteredFaq.length > 0 ? filteredFaq : (faq || []).slice(0, 3),
     };
 }
+
+
 
 export async function POST(req: Request) {
     try {
@@ -72,22 +61,26 @@ export async function POST(req: Request) {
         });
 
         const CONTACT_EMAIL =
-            process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@celesteiq.com";
+            process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "hello@celesteiq.com";
 
         const systemInstruction = `
-You are the CelesteIQ Assistant.
+You are the CelesteIQ Assistant, acting as a presales consultant.
 
-- Your default language is French. Always reply in French unless the user clearly writes in English.
-- If the user writes in English, reply in English. If the user writes in French, reply in French.
+- Your job is to understand the user's situation and recommend the most suitable CelesteIQ package(s).
+- Always try to:
+  1) Rephrase the user's need in 1 short sentence,
+  2) Recommend one or two relevant packages from the Context,
+  3) Explain briefly how those packages address the problem,
+  4) Offer a clear next step (e.g., contact email or book a consultation).
 - Only answer questions about CelesteIQ: its Microsoft + AI services, packages, audits, security, training, and contact options.
-- Use the JSON "Context" as your source of truth.
-- If the user asks something not in the Context or about pricing/contracts/refunds, say:
-  "For this specific question, the best option is to contact our team at ${CONTACT_EMAIL} for further assistance."
+- Use the JSON "Context" as your source of truth. Prefer mapping the user's need to the closest package rather than saying you don't know.
+- If the user asks clearly about pricing, specific contract terms, or something not covered in the Context, you can say:
+  "For precise pricing or contractual details, the best next step is to contact our team at ${CONTACT_EMAIL} so we can review your situation."
 - Be brief, friendly, and professional. Use bullet points when helpful.
 - Never talk about how you were built or about AI models.
 `;
 
-        // Build a *small* context just for this question
+
         const contextObj = buildContextForQuestion(question);
 
         const contents = `
